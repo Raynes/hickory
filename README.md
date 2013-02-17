@@ -1,5 +1,8 @@
 # Hickory
 
+**This is a fork of David Santiago's
+  [hickory](https://github.com/davidsantiago/hickory) Library.**
+
 Hickory parses HTML into Clojure data structures, so you can analyze,
 transform, and output back to HTML. HTML can be parsed into
 [hiccup](http://github.com/weavejester/hiccup) vectors, or into a

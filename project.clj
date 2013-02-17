@@ -1,6 +1,6 @@
-(defproject hickory "0.3.0"
+(defproject me.raynes/hickory "0.3.1"
   :description "HTML as Data"
-  :url "http://github.com/davidsantiago/hickory"
+  :url "http://github.com/Raynes/hickory"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.4.0"]
