@@ -130,13 +130,15 @@
 
    as we do not keep any letter case or whitespace information, any
    \"tag-soupy\" elements, attribute quote characters used, etc."
-  [dom]
+  [dom & {:keys [escape-strings?] :or {escape-strings? true}}]
   (if (string? dom)
-    (qt/html-escape dom)
+    (if escape-strings?
+      (qt/html-escape dom)
+      dom)
     (try
       (case (:type dom)
         :document
-        (apply str (map hickory-to-html (:content dom)))
+        (apply str (map #(hickory-to-html % :escape-strings? escape-strings?) (:content dom)))
         :document-type
         (str "<!DOCTYPE " (get-in dom [:attrs :name])
              (when-let [publicid (not-empty (get-in dom [:attrs :publicid]))]
@@ -160,7 +162,7 @@
          (str "<" (name (:tag dom))
               (apply str (map render-attribute (:attrs dom)))
               ">"
-              (apply str (map hickory-to-html (:content dom)))
+              (apply str (map #(hickory-to-html % :escape-strings? escape-strings?) (:content dom)))
               "</" (name (:tag dom)) ">"))
         :comment
         (str "<!--" (apply str (:content dom)) "-->"))
