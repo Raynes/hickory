@@ -114,11 +114,26 @@
 
 (def ^{:private true} unescapable-content #{:script :style})
 
+(defprotocol Escapable
+  (escape [this]))
+
+(deftype EscapedHTML [s]
+  Escapable
+  (escape [this] (qt/html-escape s)))
+
+(deftype RawHTML [s]
+  Escapable
+  (escape [this] s))
+
+(extend-protocol Escapable
+  String
+  (escape [this] (escape (->EscapedHTML this))))
+
 (defn- render-attribute
   "Given a map entry m, representing the attribute name and value, returns a
    string representing that key/value pair as it would be rendered into HTML."
   [m]
-  (str " " (name (key m)) "=\"" (qt/html-escape (val m)) "\""))
+  (str " " (name (key m)) "=\"" (escape (val m)) "\""))
 
 (defn hickory-to-html
   "Given a hickory HTML DOM map structure (as returned by as-hickory), returns a
@@ -129,16 +144,18 @@
      (= my-html-src (hickory-to-html (as-hickory (parse my-html-src))))
 
    as we do not keep any letter case or whitespace information, any
-   \"tag-soupy\" elements, attribute quote characters used, etc."
-  [dom & {:keys [escape-strings?] :or {escape-strings? true}}]
-  (if (string? dom)
-    (if escape-strings?
-      (qt/html-escape dom)
-      dom)
+   \"tag-soupy\" elements, attribute quote characters used, etc.
+
+   Any string nodes in the structure will be automatically escaped unless they
+   are of the RawHTML type, which is an escape hatch to prevent a particular string
+   from being escaped."
+  [dom]
+  (if (satisfies? Escapable dom)
+    (escape dom)
     (try
       (case (:type dom)
         :document
-        (apply str (map #(hickory-to-html % :escape-strings? escape-strings?) (:content dom)))
+        (apply str (map hickory-to-html (:content dom)))
         :document-type
         (str "<!DOCTYPE " (get-in dom [:attrs :name])
              (when-let [publicid (not-empty (get-in dom [:attrs :publicid]))]
@@ -162,7 +179,7 @@
          (str "<" (name (:tag dom))
               (apply str (map render-attribute (:attrs dom)))
               ">"
-              (apply str (map #(hickory-to-html % :escape-strings? escape-strings?) (:content dom)))
+              (apply str (map hickory-to-html (:content dom)))
               "</" (name (:tag dom)) ">"))
         :comment
         (str "<!--" (apply str (:content dom)) "-->"))

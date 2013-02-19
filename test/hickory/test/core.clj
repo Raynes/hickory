@@ -93,7 +93,9 @@
                            (first (parse-fragment "<script>Test<!--Test&Test-->Test</script>"))))))
   ;; Make sure attribute contents are html-escaped.
   (is (= "<img fake-attr=\"abc&quot;def\">"
-         (hickory-to-html (as-hickory (first (parse-fragment "<img fake-attr=\"abc&quot;def\">")))))))
+         (hickory-to-html (as-hickory (first (parse-fragment "<img fake-attr=\"abc&quot;def\">"))))))
+  ;; Make sure contents wrapped in RawHTML are not escaped.
+  (is (= "<a><b></b></a>" (hickory-to-html {:type :element :tag :a :content [(->RawHTML "<b></b>")]}))))
 
 (deftest doctypes
   (is (= "<!DOCTYPE html><html><head></head><body></body></html>"
