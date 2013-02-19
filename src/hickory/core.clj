@@ -121,13 +121,23 @@
   Escapable
   (escape [this] (qt/html-escape s)))
 
+(defn escaped
+  "Create an instance of EscapedHTML."
+  [s]
+  (->EscapedHTML s))
+
 (deftype RawHTML [s]
   Escapable
   (escape [this] s))
 
+(defn unescaped
+  "Create an instance of RawHTML."
+  [s]
+  (->RawHTML s))
+
 (extend-protocol Escapable
   String
-  (escape [this] (escape (->EscapedHTML this))))
+  (escape [this] (escape (escaped this))))
 
 (defn- render-attribute
   "Given a map entry m, representing the attribute name and value, returns a
