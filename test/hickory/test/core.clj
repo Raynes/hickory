@@ -95,7 +95,9 @@
   (is (= "<img fake-attr=\"abc&quot;def\">"
          (hickory-to-html (as-hickory (first (parse-fragment "<img fake-attr=\"abc&quot;def\">"))))))
   ;; Make sure contents wrapped in RawHTML are not escaped.
-  (is (= "<a><b></b></a>" (hickory-to-html {:type :element :tag :a :content [(unescaped "<b></b>")]}))))
+  (is (= "<a><b></b></a>" (hickory-to-html {:type :element :tag :a :content [(unescaped "<b></b>")]})))
+  ;; Handles nil nodes.
+  (is (= "<a></a>" (hickory-to-html {:type :element :tag :a :content [nil]}))))
 
 (deftest doctypes
   (is (= "<!DOCTYPE html><html><head></head><body></body></html>"
@@ -105,8 +107,8 @@
 
 (deftest error-handling
   (let [data {:type :foo :tag :a :attrs {:foo "bar"}}]
-    (is (thrown-with-msg? clojure.lang.ExceptionInfo #"^Not a valid node: nil"
-          (hickory-to-html nil)))
+    (is (thrown-with-msg? clojure.lang.ExceptionInfo #"^Not a valid node: 1"
+          (hickory-to-html 1)))
     (is (thrown-with-msg? clojure.lang.ExceptionInfo #"^Not a valid node: \{:type :foo, :attrs \{:foo \"bar\"\}, :tag :a\}"
           (hickory-to-html data)))
     (is (= data 

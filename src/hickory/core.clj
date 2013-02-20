@@ -160,41 +160,42 @@
    are of the RawHTML type, which is an escape hatch to prevent a particular string
    from being escaped."
   [dom]
-  (if (satisfies? Escapable dom)
-    (escape dom)
-    (try
-      (case (:type dom)
-        :document
-        (apply str (map hickory-to-html (:content dom)))
-        :document-type
-        (str "<!DOCTYPE " (get-in dom [:attrs :name])
-             (when-let [publicid (not-empty (get-in dom [:attrs :publicid]))]
-               (str " PUBLIC \"" publicid "\""))
-             (when-let [systemid (not-empty (get-in dom [:attrs :systemid]))]
-               (str " \"" systemid "\""))
-             ">")
-        :element
-        (cond
-         (void-element (:tag dom))
-         (str "<" (name (:tag dom))
-              (apply str (map render-attribute (:attrs dom)))
-              ">")
-         (unescapable-content (:tag dom))
-         (str "<" (name (:tag dom))
-              (apply str (map render-attribute (:attrs dom)))
-              ">"
-              (apply str (:content dom)) ;; Won't get html-escaped.
-              "</" (name (:tag dom)) ">")
-         :else
-         (str "<" (name (:tag dom))
-              (apply str (map render-attribute (:attrs dom)))
-              ">"
+  (cond
+   (satisfies? Escapable dom) (escape dom)
+   (nil? dom) ""
+   :else  (try
+            (case (:type dom)
+              :document
               (apply str (map hickory-to-html (:content dom)))
-              "</" (name (:tag dom)) ">"))
-        :comment
-        (str "<!--" (apply str (:content dom)) "-->"))
-      (catch IllegalArgumentException e
-        (throw
-         (if (.startsWith (.getMessage e) "No matching clause: ")
-           (ex-info (str "Not a valid node: " (pr-str dom)) {:dom dom})
-           e))))))
+              :document-type
+              (str "<!DOCTYPE " (get-in dom [:attrs :name])
+                   (when-let [publicid (not-empty (get-in dom [:attrs :publicid]))]
+                     (str " PUBLIC \"" publicid "\""))
+                   (when-let [systemid (not-empty (get-in dom [:attrs :systemid]))]
+                     (str " \"" systemid "\""))
+                   ">")
+              :element
+              (cond
+               (void-element (:tag dom))
+               (str "<" (name (:tag dom))
+                    (apply str (map render-attribute (:attrs dom)))
+                    ">")
+               (unescapable-content (:tag dom))
+               (str "<" (name (:tag dom))
+                    (apply str (map render-attribute (:attrs dom)))
+                    ">"
+                    (apply str (:content dom)) ;; Won't get html-escaped.
+                    "</" (name (:tag dom)) ">")
+               :else
+               (str "<" (name (:tag dom))
+                    (apply str (map render-attribute (:attrs dom)))
+                    ">"
+                    (apply str (map hickory-to-html (:content dom)))
+                    "</" (name (:tag dom)) ">"))
+              :comment
+              (str "<!--" (apply str (:content dom)) "-->"))
+            (catch IllegalArgumentException e
+              (throw
+               (if (.startsWith (.getMessage e) "No matching clause: ")
+                 (ex-info (str "Not a valid node: " (pr-str dom)) {:dom dom})
+                 e))))))
