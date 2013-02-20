@@ -1,4 +1,4 @@
-(defproject me.raynes/hickory "0.3.3"
+(defproject me.raynes/hickory "0.3.4"
   :description "HTML as Data"
   :url "http://github.com/Raynes/hickory"
   :license {:name "Eclipse Public License"
