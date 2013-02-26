@@ -96,17 +96,24 @@
   (as-hickory [this] (.getWholeText this)))
 
 (defn parse
-  "Parse an entire HTML document into a DOM structure that can be
-   used as input to as-hiccup or as-hickory."
-  [s]
-  (Jsoup/parse s))
+  "Parse an entire HTML or XML structure into a DOM structure that can be
+   used as input to as-hiccup or as-hickory. If type is not passed, it defaults
+   to :html. You can pass :xml for xml support."
+  [s & [type]]
+  (if (= type :xml)
+    (Jsoup/parse s "" (Parser/xmlParser))
+    (Jsoup/parse s)))
 
 (defn parse-fragment
-  "Parse an HTML fragment (some group of tags that might be at home somewhere
-   in the tag hierarchy under <body>) into a list of DOM elements that can
-   each be passed as input to as-hiccup or as-hickory."
-  [s]
-  (into [] (Parser/parseFragment s (Element. (Tag/valueOf "body") "") "")))
+  "Parse an HTML or XML fragment (some group of tags that might be at home under
+   <body> when using the HTML parser, and pretty much anything for the XML parser)
+   into a list of DOM elements that can each be passed as input to as-hiccup or
+   as-hickory."
+  [s & [type]]
+  (into []
+        (if (= type :xml)
+          (Parser/parseXmlFragment s "")
+          (Parser/parseFragment s (Element. (Tag/valueOf "body") "") ""))))
 
 (def ^{:private true} void-element
   #{:area :base :br :col :command :embed :hr :img :input :keygen :link :meta

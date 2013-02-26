@@ -99,6 +99,14 @@
   ;; Handles nil nodes.
   (is (= "<a></a>" (hickory-to-html {:type :element :tag :a :content [nil]}))))
 
+(deftest xml-test
+  (let [parsed {:type :element
+                :tag :td
+                :attrs nil
+                :content nil}]
+    (is (= {:type :document :content [parsed]} (as-hickory (parse "<td></td>" :xml))))
+    (is (= [parsed] (map as-hickory (parse-fragment "<td></td>" :xml))))))
+
 (deftest doctypes
   (is (= "<!DOCTYPE html><html><head></head><body></body></html>"
          (hickory-to-html (as-hickory (parse "<!DOCTYPE html><html><head></head><body></body></html>")))))
