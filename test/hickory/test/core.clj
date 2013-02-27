@@ -96,6 +96,8 @@
          (hickory-to-html (as-hickory (first (parse-fragment "<img fake-attr=\"abc&quot;def\">"))))))
   ;; Make sure contents wrapped in RawHTML are not escaped.
   (is (= "<a><b></b></a>" (hickory-to-html {:type :element :tag :a :content [(unescaped "<b></b>")]})))
+  ;; Unescapable content nodes ignore RawHTML and stuff.
+  (is (= "<script>foo</script>" (hickory-to-html {:type :element :tag :script :content [(unescaped "foo")]})))
   ;; Handles nil nodes.
   (is (= "<a></a>" (hickory-to-html {:type :element :tag :a :content [nil]}))))
 

@@ -191,7 +191,7 @@
                (str "<" (name (:tag dom))
                     (apply str (map render-attribute (:attrs dom)))
                     ">"
-                    (apply str (:content dom)) ;; Won't get html-escaped.
+                    (apply str (for [s (:content dom)] (escape (if (string? s) (unescaped s) s))))
                     "</" (name (:tag dom)) ">")
                :else
                (str "<" (name (:tag dom))
