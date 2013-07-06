@@ -105,9 +105,14 @@
   (let [parsed {:type :element
                 :tag :td
                 :attrs nil
-                :content nil}]
+                :content nil}
+        declaration "<?xml version=\"1.0\"?>"]
     (is (= {:type :document :content [parsed]} (as-hickory (parse "<td></td>" :xml))))
-    (is (= [parsed] (map as-hickory (parse-fragment "<td></td>" :xml))))))
+    (is (= [parsed] (map as-hickory (parse-fragment "<td></td>" :xml))))
+    (is (= declaration (-> declaration
+                           (parse :xml)
+                           (as-hickory)
+                           (hickory-to-html))))))
 
 (deftest doctypes
   (is (= "<!DOCTYPE html><html><head></head><body></body></html>"
@@ -121,6 +126,6 @@
           (hickory-to-html 1)))
     (is (thrown-with-msg? clojure.lang.ExceptionInfo #"^Not a valid node: \{:type :foo, :attrs \{:foo \"bar\"\}, :tag :a\}"
           (hickory-to-html data)))
-    (is (= data 
+    (is (= data
            (try (hickory-to-html data)
                 (catch Exception e (:dom (ex-data e))))))))

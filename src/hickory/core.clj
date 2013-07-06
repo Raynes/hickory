@@ -28,13 +28,13 @@
      protocol; nodes created by parse or parse-fragment already do."))
 
 (defprotocol HickoryRepresentable
-  "Objects that can be represented as HTML DOM node maps, similar to
+  "Objects that can be represented as HTML/XML DOM node maps, similar to
    clojure.xml, implement this protocol to make the conversion.
 
    Each DOM node will be a map or string (for Text/CDATASections). Nodes that
    are maps have the appropriate subset of the keys
 
-     :type     - [:comment, :document, :document-type, :element]
+     :type     - [:comment, :document, :document-type, :element, :xml-declaration]
      :tag      - node's tag, check :type to see if applicable
      :attrs    - node's attributes as a map, check :type to see if applicable
      :content  - node's child nodes, in a vector, check :type to see if
@@ -93,7 +93,11 @@
                                 (into [] (map as-hickory
                                               (.childNodes this))))})
   TextNode
-  (as-hickory [this] (.getWholeText this)))
+  (as-hickory [this] (.getWholeText this))
+
+  XmlDeclaration
+  (as-hickory [this] {:type :xml-declaration
+                      :attrs (as-hickory (.attributes this))}))
 
 (defn parse
   "Parse an entire HTML or XML structure into a DOM structure that can be
@@ -152,6 +156,7 @@
   [m]
   (str " " (name (key m)) "=\"" (escape (val m)) "\""))
 
+;; Half assed XML support in this here function.
 (defn hickory-to-html
   "Given a hickory HTML DOM map structure (as returned by as-hickory), returns a
    string containing HTML it represents.
@@ -181,6 +186,8 @@
                    (when-let [systemid (not-empty (get-in dom [:attrs :systemid]))]
                      (str " \"" systemid "\""))
                    ">")
+              :xml-declaration
+              (str "<?" (get-in dom [:attrs :declaration]) ">")
               :element
               (cond
                (void-element (:tag dom))
